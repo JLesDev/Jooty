@@ -1294,12 +1294,45 @@ label {
 
 .news-title {
   color: #fff;
-  box-shadow: 0.5rem 0.5rem 0.5rem rgba(255, 255, 255, 0.4);
+  /* box-shadow: 0.5rem 0.5rem 0.5rem rgba(255, 255, 255, 0.4); */
   font-size: auto;
   width: 100%;
   height: auto;
   position: absolute;
   transform: translate(-50%, -20%);
+  top: 50%;
+  left: 50%;
+}
+
+#first {
+  transform: translate(520%, 280%);
+}
+
+#second {
+  transform: translate(650%, 280%);
+}
+.slide-show {
+  position: absolute;
+  height: 3rem;
+  width: 3rem;
+  background-color: #fff;
+  transform: translate(500%, 280%);
+  top: 50%;
+  left: 50%;
+  border-radius: 999rem;
+  border: solid;
+  border-color: #fff;
+  border-width: 1rem;
+}
+
+.view-count {
+  color: #fff;
+  /* box-shadow: 0.5rem 0.5rem 0.5rem rgba(255, 255, 255, 0.4); */
+  font-size: 4rem;
+  width: 100%;
+  height: auto;
+  position: absolute;
+  transform: translate(-50%, 80%);
   top: 50%;
   left: 50%;
 }
