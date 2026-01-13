@@ -676,6 +676,8 @@ radial-gradient(circle at 70% 80%, rgba(219, 219, 219, 0.781), transparent 40%);
 
 
 .content {
+  background: url("speckle.png");
+  background-size: contain;
   height: 100%;
   z-index: 1000;
   display: flex;
@@ -1091,6 +1093,13 @@ label {
 }
 
 .menu-box {
+  /* background: url("speckle.png"); */
+  background-position: -3rem -5rem;
+  /* background-clip: 10%; */
+  background-repeat: repeat;
+  /* background-size: 2%; */
+  background-size: cover;
+  background-color: #fff;
   border-style: solid;
   border-radius: 0.8rem;
   border-width: 0.5rem;
@@ -1102,11 +1111,22 @@ label {
 }
 
 #stats {
+  /* background: url("orange-speckle.png") -3rem -5rem repeat cover, url("stats.png") -10rem 0rem no-repeat contain; */
+  /* background: url("orange-speckle.png"), url("stats.png"); */
+  /* background-size: cover; */
+  /* background-position: -30rem -5rem; */
   height: 10%;
+  filter: hue-rotate(90deg);
 }
 
 #chat {
   height: 10%;
+  filter: hue-rotate(180deg);
+}
+
+#create {
+  height: 10%;
+  filter: hue-rotate(270deg);
 }
 
 #share {
@@ -1305,11 +1325,12 @@ label {
 }
 
 #first {
-  transform: translate(520%, 280%);
+  transform: translate(610%, 270%);
 }
 
 #second {
-  transform: translate(650%, 280%);
+  transform: translate(740%, 270%);
+  background: transparent;
 }
 .slide-show {
   position: absolute;
@@ -1322,7 +1343,7 @@ label {
   border-radius: 999rem;
   border: solid;
   border-color: #fff;
-  border-width: 1rem;
+  border-width: 0.2rem;
 }
 
 .view-count {
