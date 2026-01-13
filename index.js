@@ -40,19 +40,6 @@ function cityText(city) {
 let miner = 999;
 let maxer = -999;
 
-async function getAverages() {
-  const baseURL = window.location.origin;
-  const requestURL = baseURL + "/Jeather2/averages.json";
-  // For local hosting: 
-  // const requestURL = "http://127.0.0.1:5500/averages.json";
-  const request = new Request(requestURL);
-  const response = await fetch(request);
-  let averagesJSON = await response.json();
-  return averagesJSON;
-}
-
-let averages = await getAverages();
-
 let quotes = [
   "If you’re offered a seat on a rocket ship, don’t ask what seat! Just get on. Sheryl Sandberg"
   ,
