@@ -1444,6 +1444,28 @@ label {
   border-width: 0rem;
 }
 
+.ladder-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+}
+
+.ladder-left {
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ladder-right {
+  text-align: right;
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+
 .year-button {
   font-size: 4rem;
   font-weight: bold;

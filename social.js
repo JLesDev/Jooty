@@ -437,27 +437,37 @@ function renderLadder(rows, container) {
   }
   container.innerHTML = '';
   rows.forEach((r, i) => {
-    const pos = r.rank ?? (i + 1);
-    let team = r.team || r.name || (r.teamid ? 'Team ' + r.teamid : 'Unknown');
-    const wins = r.wins ?? r.w ?? '-';
-    const losses = r.losses ?? r.l ?? '-';
-    const draws = r.draws ?? r.d ?? 0;
-    const points = r.points ?? r.pts ?? '-';
-    let percent = r.percentage ?? r.percent ?? r.pct ?? '-';
+     const pos = r.rank ?? (i + 1);
+     let team = r.team || r.name || (r.teamid ? 'Team ' + r.teamid : 'Unknown');
+     const wins = r.wins ?? r.w ?? '-';
+     const losses = r.losses ?? r.l ?? '-';
+     const draws = r.draws ?? r.d ?? 0;
+     const points = r.points ?? r.pts ?? '-';
+     let percent = r.percentage ?? r.percent ?? r.pct ?? '-';
 
-    const btn = document.createElement('button');
+     percent = percentFormat(percent);
+     team = teamFormat(team);
 
-    team = teamFormat(team);
-    percent = percentFormat(percent); 
 
-    btn.type = 'button';
-    btn.className = 'dropdown-item ladder-row';
-    btn.style.backgroundColor = teamColours(team);
-    btn.style.color = teamTextColours(team);
+     const btn = document.createElement('button');
+     btn.type = 'button';
+     btn.className = 'dropdown-item ladder-row';
 
-    btn.innerText = `${pos}. ${team}  -  ${wins}W ${losses}L${draws ? ' '+draws+'D' : ''}  Pts: ${points}  ${percent}`;
-    
-    container.appendChild(btn);
+     const left = document.createElement('span');
+     left.className = 'ladder-left';
+     left.innerText = `${pos}. ${team}`;
+
+     const right = document.createElement('span');
+     right.className = 'ladder-right';
+     right.innerText = `${wins}W ${losses}L ${draws ? ' ' + draws + 'D' : ''}  Pts:${points} ${percent}`;
+
+     btn.style.backgroundColor = teamColours(team);
+     left.style.color = teamTextColours(team);  
+     right.style.color = teamTextColours(team);  
+
+     btn.appendChild(left);
+     btn.appendChild(right);
+     container.appendChild(btn);
   });
 }
 
@@ -522,7 +532,7 @@ function teamColours(team) {
         return '#000000ff'
     }
     else if (team == "Fremantle"){
-        return '#5331c4ff'
+        return '#341697ff'
     }
     else if (team == "Geelong"){
         return '#001dabff'
