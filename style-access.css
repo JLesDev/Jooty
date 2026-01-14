@@ -1426,8 +1426,7 @@ label {
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 8rem);
-  /* allow dropdowns (rounds) to render outside the menu box */
-  overflow: visible;
+  overflow: hidden;
 }
 
 #fixture-rows {
