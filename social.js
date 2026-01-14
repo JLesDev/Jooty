@@ -291,14 +291,42 @@
 const moreButton = document.getElementById('more');
 const dropdownMenu = document.getElementById('dropdown-menu');
 
-// Ladder elements (top nav ladder button)
 const ladderButton = document.querySelector('.city-nav #adel');
 const ladderMenu = document.getElementById('ladder-menu');
 let ladderCache = {}; // cache ladder data per year for this session
 
+// Utility to close other menus. Pass the button that should be excluded
+// (i.e. the one the user just clicked) so its menu can toggle normally.
+function closeOtherMenus(exceptButton) {
+  try {
+    if (dropdownMenu && exceptButton !== moreButton) {
+      dropdownMenu.classList.remove('show');
+      moreButton && moreButton.classList.remove('active');
+      if (document.activeElement === moreButton) moreButton.blur();
+    }
+    if (ladderMenu && exceptButton !== ladderButton) {
+      ladderMenu.classList.remove('show');
+      ladderButton && ladderButton.classList.remove('active');
+      if (document.activeElement === ladderButton) ladderButton.blur();
+    }
+  } catch (err) {
+    console.error('closeOtherMenus error', err);
+  }
+}
+
+// Ensure clicking any top button closes other menus (keeps only the clicked menu open)
+document.querySelectorAll('.top-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    // let the specific handlers manage toggling their own menu; just ensure others close
+    closeOtherMenus(btn);
+  });
+});
+
 if (moreButton && dropdownMenu) {
   moreButton.addEventListener('click', (e) => {
     e.stopPropagation();
+    // close any other open top menus (like the ladder) before toggling More
+    closeOtherMenus(moreButton);
     const showing = dropdownMenu.classList.toggle('show');
     // toggle .active on the button to match the visual state
     moreButton.classList.toggle('active', showing);
@@ -330,13 +358,10 @@ if (moreButton && dropdownMenu) {
 if (ladderButton && ladderMenu) {
   ladderButton.addEventListener('click', async (e) => {
     e.stopPropagation();
+    // close any other open top menus (like More) before toggling Ladder
+    closeOtherMenus(ladderButton);
     const showing = ladderMenu.classList.toggle('show');
     ladderButton.classList.toggle('active', showing);
-    // close the More menu if open
-    if (dropdownMenu && dropdownMenu.classList.contains('show')) {
-      dropdownMenu.classList.remove('show');
-      moreButton && moreButton.classList.remove('active');
-    }
 
     if (!showing) {
       ladderButton.blur();
@@ -373,7 +398,6 @@ if (ladderButton && ladderMenu) {
         options.appendChild(opt);
       }
 
-      // wire toggle and stop propagation so clicking the year control doesn't close the ladder
       button.addEventListener('click', (ev) => {
         ev.stopPropagation();
         options.style.display = options.style.display === 'none' ? 'block' : 'none';
