@@ -455,7 +455,7 @@ function renderLadder(rows, container) {
 
      const left = document.createElement('span');
      left.className = 'ladder-left';
-     left.innerText = `${pos}. ${team}`;
+     left.innerText = `${pos} ${team}`;
 
      const right = document.createElement('span');
      right.className = 'ladder-right';
