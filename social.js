@@ -293,10 +293,13 @@ const dropdownMenu = document.getElementById('dropdown-menu');
 
 const ladderButton = document.querySelector('.city-nav #adel');
 const ladderMenu = document.getElementById('ladder-menu');
+const fixtureButton = document.querySelector('.city-nav #melb');
+const fixtureMenu = document.getElementById('fixture-menu');
 let ladderCache = {}; // cache ladder data per year for this session
+let fixtureCache = {}; // cache fixtures per year
 
-// Utility to close other menus. Pass the button that should be excluded
-// (i.e. the one the user just clicked) so its menu can toggle normally.
+
+
 function closeOtherMenus(exceptButton) {
   try {
     if (dropdownMenu && exceptButton !== moreButton) {
@@ -306,8 +309,17 @@ function closeOtherMenus(exceptButton) {
     }
     if (ladderMenu && exceptButton !== ladderButton) {
       ladderMenu.classList.remove('show');
+      const yo = ladderMenu.querySelector('.year-options');
+      if (yo) yo.classList.remove('show');
       ladderButton && ladderButton.classList.remove('active');
       if (document.activeElement === ladderButton) ladderButton.blur();
+    }
+    if (fixtureMenu && exceptButton !== fixtureButton) {
+      fixtureMenu.classList.remove('show');
+      const ro = fixtureMenu.querySelector('.rounds-options');
+      if (ro) ro.classList.remove('show');
+      fixtureButton && fixtureButton.classList.remove('active');
+      if (document.activeElement === fixtureButton) fixtureButton.blur();
     }
   } catch (err) {
     console.error('closeOtherMenus error', err);
@@ -354,6 +366,127 @@ if (moreButton && dropdownMenu) {
   });
 }
 
+// Fixture wiring: show upcoming games when Fixture is clicked
+if (fixtureButton && fixtureMenu) {
+  fixtureButton.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    // close other menus first
+    closeOtherMenus(fixtureButton);
+    const showing = fixtureMenu.classList.toggle('show');
+    fixtureButton.classList.toggle('active', showing);
+
+    // toggle overlay like ladder
+    if (showing) {
+      document.body.classList.add('overlay-open');
+    } else {
+      document.body.classList.remove('overlay-open');
+      fixtureButton.blur();
+      return;
+    }
+
+    // build UI once: controls (rounds) + rows container
+    if (!fixtureMenu.querySelector('.fixture-rows')) {
+      fixtureMenu.innerHTML = '';
+      const controls = document.createElement('div');
+      controls.className = 'fixture-controls dropdown-item';
+
+      const roundsButton = document.createElement('div');
+      roundsButton.className = 'dropdown-item rounds-button';
+      roundsButton.tabIndex = 0;
+      roundsButton.innerText = 'All Rounds';
+
+      const roundsOptions = document.createElement('div');
+      roundsOptions.className = 'rounds-options';
+
+      roundsButton.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        roundsOptions.classList.toggle('show');
+      });
+      roundsOptions.addEventListener('click', (ev) => ev.stopPropagation());
+
+      controls.appendChild(roundsButton);
+      controls.appendChild(roundsOptions);
+      fixtureMenu.appendChild(controls);
+
+      const rows = document.createElement('div');
+      rows.className = 'fixture-rows';
+      rows.id = 'fixture-rows';
+      fixtureMenu.appendChild(rows);
+
+      // load upcoming for current year and populate rounds
+      const year = String(new Date().getFullYear());
+      const all = await loadFixturesForYear(year, rows);
+        // build rounds list from fetched data (include round 0)
+        const rounds = Array.from(new Set(all.map(g => g.round).filter(r => r !== undefined && r !== null))).sort((a,b)=>a-b);
+        // choose default: prefer Round 0 when present, otherwise first round, otherwise 'all'
+        const defaultRound = rounds.includes(0) ? 0 : (rounds.length ? rounds[0] : 'all');
+      const optsFrag = document.createDocumentFragment();
+      const allOpt = document.createElement('div');
+      allOpt.className = 'dropdown-item round-option';
+      allOpt.dataset.round = 'all';
+      allOpt.innerText = 'All Rounds';
+      allOpt.addEventListener('click', () => {
+        roundsButton.innerText = 'All Rounds';
+        roundsOptions.classList.remove('show');
+        renderFixtures(all, rows);
+      });
+      optsFrag.appendChild(allOpt);
+      rounds.forEach(r => {
+        const opt = document.createElement('div');
+        opt.className = 'dropdown-item round-option';
+        opt.dataset.round = String(r);
+        opt.innerText = 'Round ' + r;
+        opt.addEventListener('click', () => {
+          roundsButton.innerText = 'Round ' + r;
+          roundsOptions.classList.remove('show');
+          const subset = all.filter(g => String(g.round) === String(r));
+          renderFixtures(subset, rows);
+        });
+        optsFrag.appendChild(opt);
+      });
+      roundsOptions.appendChild(optsFrag);
+      // set initial selection and render only that round (user requested start on Round 0)
+      if (defaultRound === 'all') {
+        roundsButton.innerText = 'All Rounds';
+        renderFixtures(all, rows);
+      } else {
+        roundsButton.innerText = 'Round ' + defaultRound;
+        const subset = all.filter(g => String(g.round) === String(defaultRound));
+        renderFixtures(subset, rows);
+      }
+    } else {
+      const rows = fixtureMenu.querySelector('#fixture-rows');
+      const year = String(new Date().getFullYear());
+      // reload fixtures and respect any previously selected round
+      const all = await loadFixturesForYear(year, rows);
+      const roundsButton = fixtureMenu.querySelector('.rounds-button');
+      if (roundsButton) {
+        const txt = roundsButton.innerText || '';
+        if (txt.startsWith('Round ')) {
+          const r = txt.replace('Round ', '').trim();
+          const subset = all.filter(g => String(g.round) === String(r));
+          renderFixtures(subset, rows);
+        } else {
+          renderFixtures(all, rows);
+        }
+      }
+    }
+  });
+
+  // Close fixture when clicking outside
+  document.addEventListener('click', () => {
+    if (fixtureMenu) {
+      fixtureMenu.classList.remove('show');
+      const ro = fixtureMenu.querySelector('.rounds-options');
+      if (ro) ro.classList.remove('show');
+    }
+    if (fixtureButton) fixtureButton.classList.remove('active');
+    // remove overlay if present
+    document.body.classList.remove('overlay-open');
+    if (document.activeElement === fixtureButton) fixtureButton.blur();
+  });
+}
+
 // Ladder wiring: fetch and render the AFL ladder using Squiggle's standings endpoint
 if (ladderButton && ladderMenu) {
   ladderButton.addEventListener('click', async (e) => {
@@ -363,7 +496,13 @@ if (ladderButton && ladderMenu) {
     const showing = ladderMenu.classList.toggle('show');
     ladderButton.classList.toggle('active', showing);
 
-    if (!showing) {
+    // toggle body overlay so rest of page is dim/blurred while ladder is open
+    if (showing) {
+      document.body.classList.add('overlay-open');
+    } else {
+      document.body.classList.remove('overlay-open');
+      const yo = ladderMenu.querySelector('.year-options');
+      if (yo) yo.classList.remove('show');
       ladderButton.blur();
       return;
     }
@@ -380,11 +519,10 @@ if (ladderButton && ladderMenu) {
       button.tabIndex = 0;
       button.innerText = String(currentYear);
 
-      const options = document.createElement('div');
-      options.className = 'year-options';
-      options.style.display = 'none';
+  const options = document.createElement('div');
+  options.className = 'year-options';
 
-      for (let y = currentYear; y >= 1990; y--) {
+      for (let y = currentYear; y >= 1898; y--) {
         const opt = document.createElement('div');
         opt.className = 'dropdown-item year-option';
         opt.dataset.year = String(y);
@@ -392,7 +530,7 @@ if (ladderButton && ladderMenu) {
         opt.addEventListener('click', (ev) => {
           ev.stopPropagation();
           button.innerText = ev.currentTarget.dataset.year;
-          options.style.display = 'none';
+          options.classList.remove('show');
           loadLadderForYear(ev.currentTarget.dataset.year, rows);
         });
         options.appendChild(opt);
@@ -400,14 +538,14 @@ if (ladderButton && ladderMenu) {
 
       button.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        options.style.display = options.style.display === 'none' ? 'block' : 'none';
+        options.classList.toggle('show');
       });
       // keyboard support (Enter / Space)
       button.addEventListener('keydown', (ev) => {
         if (ev.key === 'Enter' || ev.key === ' ') {
           ev.preventDefault();
           ev.stopPropagation();
-          options.style.display = options.style.display === 'none' ? 'block' : 'none';
+          options.classList.toggle('show');
         }
       });
       options.addEventListener('click', (ev) => ev.stopPropagation());
@@ -433,8 +571,15 @@ if (ladderButton && ladderMenu) {
 
   // Close ladder when clicking outside
   document.addEventListener('click', () => {
-    if (ladderMenu) ladderMenu.classList.remove('show');
+    if (ladderMenu) {
+      ladderMenu.classList.remove('show');
+      // also close any open year-options inside
+      const yo = ladderMenu.querySelector('.year-options');
+      if (yo) yo.classList.remove('show');
+    }
     if (ladderButton) ladderButton.classList.remove('active');
+    // remove page overlay if present
+    document.body.classList.remove('overlay-open');
     if (document.activeElement === ladderButton) ladderButton.blur();
   });
 }
@@ -493,6 +638,84 @@ function renderLadder(rows, container) {
      btn.appendChild(right);
      container.appendChild(btn);
   });
+}
+
+function renderFixtures(games, container) {
+  if (!Array.isArray(games) || games.length === 0) {
+    container.innerHTML = '<div class="dropdown-item">No upcoming games</div>';
+    return;
+  }
+  container.innerHTML = '';
+  const now = Date.now();
+  // sort by date ascending
+  games.sort((a, b) => {
+    const da = a.date ? new Date(a.date).getTime() : 0;
+    const db = b.date ? new Date(b.date).getTime() : 0;
+    return da - db;
+  });
+  games.forEach((g) => {
+    let team1 = g.hteam || g.home || g.team1id || g.teamA || 'T1';
+    let team2 = g.ateam || g.away || g.team2id || g.teamB || 'T2';
+    const dateStr = g.date ? new Date(g.date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : (g.round ? 'Rnd ' + g.round : 'TBA');
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'dropdown-item fixture-row';
+
+    team1 = teamFormat(team1);
+    team2 = teamFormat(team2);
+
+  const left = document.createElement('span');
+  left.className = 'fixture-left';
+  left.innerText = `${team1} v ${team2}`;
+
+  const right = document.createElement('span');
+  right.className = 'fixture-right';
+  // show date and venue on the second line
+  const venueText = g.venue ? `  •  ${g.venue}` : '';
+  right.innerText = `${dateStr}${venueText}`;
+
+    // btn.style.backgroundColor = teamColours("white");
+    left.style.color = teamTextColours("white");  
+    right.style.color = teamTextColours("white");  
+
+    btn.appendChild(left);
+    btn.appendChild(right);
+    // no venue images: simple text-only rows (venue may appear in the right column)
+    container.appendChild(btn);
+  });
+}
+
+async function loadFixturesForYear(year, rowsContainer) {
+  if (fixtureCache[year]) {
+    renderFixtures(fixtureCache[year], rowsContainer);
+    return fixtureCache[year];
+  }
+  rowsContainer.innerHTML = '<div class="dropdown-item">Loading upcoming...</div>';
+  try {
+    const url = 'https://api.squiggle.com.au/?q=games;format=json;year=' + encodeURIComponent(year) + ';';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Network response was not ok');
+    const data = await res.json();
+    // normalize to array if needed
+    const arr = normalizeLadderData(data);
+    // filter for future games (date > now) or games without scores
+    const now = Date.now();
+    const upcoming = arr.filter(g => {
+      try {
+        if (g.date) return new Date(g.date).getTime() > now;
+        // fallback: treat games without score fields as upcoming
+        return !(g.score1 || g.score2 || g.home_score || g.away_score);
+      } catch (e) { return false; }
+    });
+    fixtureCache[year] = upcoming;
+    renderFixtures(upcoming, rowsContainer);
+    return upcoming;
+  } catch (err) {
+    rowsContainer.innerHTML = '<div class="dropdown-item">Failed to load fixtures</div>';
+    console.error('Failed to fetch fixtures for year', year, err);
+    return [];
+  }
 }
 
 async function loadLadderForYear(year, rowsContainer) {
@@ -555,11 +778,14 @@ function teamColours(team) {
     else if (team == "Essendon"){
         return '#000000ff'
     }
+    else if (team == "Fitzroy"){
+        return '#a20913ff'
+    }
     else if (team == "Fremantle"){
         return '#341697ff'
     }
     else if (team == "Geelong"){
-        return '#001dabff'
+        return '#233075ff'
     }
     else if (team == "Gold Coast"){
         return '#ff93d0ff'
@@ -602,7 +828,7 @@ function teamColours(team) {
 
 function teamTextColours(team) {
     if(team == "Adelaide"){
-        return '#e8ff19ff'
+        return '#ffc219ff'
     }
     else if(team == "Bris. Lions"){
         return '#f6ff50ff'
@@ -615,6 +841,9 @@ function teamTextColours(team) {
     }
     else if (team == "Essendon"){
         return '#ff0000ff'
+    }
+    else if (team == "Fitzroy"){
+        return '#f1ee2aff'
     }
     else if (team == "Fremantle"){
         return '#ffffffff'

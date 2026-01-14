@@ -1371,6 +1371,7 @@ label {
 }
 
 .dropdown-menu {
+  border-radius: 0.8rem;
   position: absolute;
   top: 100%;
   left: 0;
@@ -1400,30 +1401,105 @@ label {
   transition-delay: 0s;
 }
 
-/* Ladder-specific behaviour: keep the year controls pinned and make rows scrollable
-   so the dropdown never extends over the fixed footer. We use a conservative
-   viewport-based max-height so the menu fits above the bottom bar. */
 #ladder-menu {
   display: flex;
   flex-direction: column;
-  /* leave some room for the footer and spacing — adjust if your footer height changes */
   max-height: calc(100vh - 8rem);
-  overflow: hidden; /* parent hides overflow, child will scroll */
+  overflow: hidden;
 }
 
 #ladder-menu .ladder-controls {
-  /* keep controls (year button) visible at the top of the menu */
   position: sticky;
   top: 0;
   z-index: 2100;
-  background: #000; /* match menu background so sticky area blends in */
+  background: #000; 
 }
 
 #ladder-rows {
-  /* take remaining space and scroll if content overflows */
   flex: 1 1 auto;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+#fixture-menu {
+  font-size: 4rem;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 8rem);
+  overflow: hidden;
+}
+
+#fixture-rows {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Uniform fixture row sizing and layout */
+.fixture-row {
+  display: flex;
+  flex-direction: column; /* stack teams on top, info below */
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.6rem 0.9rem;
+  box-sizing: border-box;
+  height: auto; /* allow natural height for text wrapping */
+  min-height: 10rem; /* reasonable two-line minimum */
+  overflow: hidden;
+  font-size: 1.6rem; /* moderate size so text isn't cut off */
+  line-height: auto;
+  position: relative;
+}
+
+.fixture-row .ladder-left,
+.fixture-row .ladder-right {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.fixture-row .ladder-left {
+  text-align: left;
+  font-weight: 700;
+  white-space: nowrap; /* keep team line single-line with ellipsis */
+}
+
+.fixture-row .ladder-right {
+  text-align: left; /* info left-aligned on second line */
+  font-weight: 500;
+  font-size: 1.4rem;
+  color: rgba(255,255,255,0.9);
+  white-space: normal; /* allow wrapping for venue/date info */
+}
+
+/* Background venue image (grayscale) using CSS variable set inline per row */
+.fixture-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--venue-img, none);
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(100%) brightness(0.35) contrast(0.9);
+  opacity: 1;
+  z-index: 0;
+  border-radius: 0.25rem;
+}
+
+.fixture-row > * {
+  position: relative;
+  z-index: 1; /* ensure text sits above background image */
+}
+
+body.overlay-open::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1500; /* above page content but below top bar / menus (top-box z-index:3000) */
+  pointer-events: none; /* allow clicks to pass to top menus */
 }
 
 .dropdown-item {
@@ -1444,6 +1520,12 @@ label {
   border-style: solid;
 }
 
+#fixture-menu .dropdown-item,
+#ladder-menu .dropdown-item {
+  font-size: 4rem;
+  padding: 0.6rem 0.9rem;
+}
+
 .dropdown-item:hover {
   background: #ffffff;
   color: #000;
@@ -1452,7 +1534,7 @@ label {
 @media (max-width: 1100px) {
   .dropdown-item {
     font-size: 4rem;
-    padding: 1.5rem;
+    padding: 1rem;
   }
 }
 
@@ -1501,6 +1583,22 @@ label {
   margin-left: 1rem;
 }
 
+.fixture-left {
+  font-size: 3.5rem;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 1rem;
+}
+.fixture-right {
+  font-size: 3.2rem;
+  text-align: left;
+  text-overflow: ellipsis;
+  /* white-space: nowrap; */
+  /* white-space: nowrap; */
+  margin-right: 1rem;
+}
+
 .year-button {
   font-size: 4rem;
   font-weight: bold;
@@ -1512,4 +1610,125 @@ label {
   -moz-appearance: none;
   padding: 0rem 0rem;
   cursor: pointer;
+}
+
+/* Make the year options visually match other dropdown items and scrollable */
+.ladder-controls {
+  position: relative; /* so .year-options can position absolute within */
+}
+
+.year-options {
+  position: absolute;
+  right: 0.5rem;
+  top: calc(100% + 0.25rem);
+  min-width: 24rem;
+  max-width: 24rem;
+  font-size: 1.6rem;
+  max-height: 36vh;
+  overflow-y: auto;
+  background: #000;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  z-index: 2200;
+}
+
+.year-options {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #000000;
+  opacity: 0;
+  transform: translateY(-8px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+}
+
+.year-options.show {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.year-options .year-option {
+  /* font-size: 1.6rem; */
+  padding: 0.6rem 1rem;
+  text-align: center;
+  background: transparent;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.year-options .year-option:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* rounds dropdown mirrors year options */
+ .fixture-controls {
+  position: relative;
+}
+
+/* Ensure controls can show dropdowns outside their own box and sit above rows */
+.fixture-controls {
+  overflow: visible;
+  z-index: 2300;
+}
+
+.rounds-button {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #000000;
+  background-color: #ffffff;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 0rem 0rem;
+  cursor: pointer;
+}
+
+.rounds-options {
+  position: absolute;
+  right: 0.5rem;
+  top: calc(100% + 0.25rem);
+  min-width: 8rem;
+  max-width: 20rem;
+  max-height: 36vh;
+  overflow-y: auto;
+  background: #000;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  z-index: 2400; /* sit above other menu content */
+}
+
+.rounds-options .round-option {
+  font-size: 1.6rem;
+  padding: 0.6rem 1rem;
+  text-align: center;
+  background: transparent;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.rounds-options .round-option:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.rounds-options {
+  opacity: 0;
+  transform: translateY(-8px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+}
+
+.rounds-options.show {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
