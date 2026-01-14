@@ -73,6 +73,12 @@ html {
   flex-direction: column;
 }
 
+#top-box,
+.city-nav,
+.top-btn {
+  pointer-events: auto;
+}
+
 #top-box::before {
   /* content: ""; */
   position: absolute;
