@@ -287,3 +287,36 @@
 
 // run(1)
 // window.run = run
+
+const moreButton = document.getElementById('more');
+const dropdownMenu = document.getElementById('dropdown-menu');
+
+if (moreButton && dropdownMenu) {
+  moreButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const showing = dropdownMenu.classList.toggle('show');
+    // toggle .active on the button to match the visual state
+    moreButton.classList.toggle('active', showing);
+    // ensure the button loses keyboard focus when hiding so :focus styles don't persist
+    if (!showing) moreButton.blur();
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', () => {
+    dropdownMenu.classList.remove('show');
+    moreButton.classList.remove('active');
+    if (document.activeElement === moreButton) moreButton.blur();
+  });
+
+  // Handle dropdown item clicks
+  document.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('Clicked:', item.textContent);
+      dropdownMenu.classList.remove('show');
+      moreButton.classList.remove('active');
+      if (document.activeElement === moreButton) moreButton.blur();
+      // Add your navigation logic here
+    });
+  });
+}

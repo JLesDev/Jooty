@@ -1,68 +1,64 @@
 <html>
-
-<head>
-    <meta charset="%UTF-8">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <title>Jooty!</title>
-</head>
-
-<body>
-    <script type="module" src="./social.js"></script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z973RHYC5W"></script>
-    <script>
+    <head>
+        <meta charset="%UTF-8">
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <title>Jooty!</title>
+    </head>
+    <body>
+        <script type="module" src="./social.js"></script>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z973RHYC5W"></script>
+        <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
 
         gtag('config', 'G-Z973RHYC5W');
-    </script>
-    <link rel="stylesheet" href="style-access.css">
-    <div id="top-box">
-        <h1>Jooty</h1>
-        <nav class="city-nav">
-            <button class="top-btn" id="melb">Fixture</button>
-            <button class="top-btn" id="adel">Ladder</button>
-            <button class="top-btn" id="more">More</button>
-            <!-- <select class="top-btn" id="more">
-                <option class="top-btn" value="more">More</option>
-                <option class="top-btn" value="more">Modelling</option>
-                <option class="top-btn" value="more">Mail list</option>
-                <option class="top-btn" value="more">Album</option>
-                <option class="top-btn" value="more">About</option>
-                <option class="top-btn" value="more">Contact</option>
-                <option class="top-btn" value="more">Legal</option>
-            </select> -->
-        </nav>
-    </div>
-    <hr>
-    <div class="content">
-        <div class="menu-box" id="news">
-            <p>News</p>
-            <div class="news-piece" id="news-piece-id">
-                <img class="news-image" src="footy.png">
-                <h1 class="news-title" id="news-title-id">Gold Coast v GWS</h1>
-                <h1 class="view-count">94 views</h1>
-                <button class="slide-show" id="first"></button>
-                <button class="slide-show" id="second"></button>
+        </script>
+        <link rel="stylesheet" href="style-access.css">
+        <div id="top-box">
+            <h1>Jooty</h1>
+            <nav class="city-nav">
+                <button class="top-btn" id="melb">Fixture</button>
+                <button class="top-btn" id="adel">Ladder</button>
+                <button class="top-btn" id="more">More</button>
+                <div class="dropdown-menu" id="dropdown-menu">
+                    <button class="dropdown-item">Modelling</button>
+                    <button class="dropdown-item">Mail list</button>
+                    <button class="dropdown-item">Album</button>
+                    <button class="dropdown-item">About</button>
+                    <button class="dropdown-item">Contact</button>
+                    <button class="dropdown-item">Legal</button>
+                </div>
+            </nav>
+        </div>
+        <hr>
+        <div class="content">
+            <div class="menu-box" id="news">
+                <p>News</p>
+                <div class="news-piece" id="news-piece-id">
+                    <img class="news-image" src="footy.png">
+                    <h1 class="news-title" id="news-title-id">Gold Coast v GWS</h1>
+                    <h1 class="view-count">94 views</h1>
+                    <button class="slide-show" id="first"></button>
+                    <button class="slide-show" id="second"></button>
+                </div>
+            </div>
+            <div class="menu-box" id="stats">
+                <p>Stats</p>
+            </div>
+            <div class="menu-box" id="chat">
+                <p>Team chat</p>
+            </div>
+            <div class="menu-box" id="create">
+                <p>Create</p>
             </div>
         </div>
-        <div class="menu-box" id="stats">
-            <p>Stats</p>
+        <div id="bottom"></div>
+        <div id="bot-box">
+            <button class="bot-btn" id="melb">Log-in</button>
+            <button class="bot-btn" id="adel">Sign up</button>
+            <button class="bot-btn" id="more">Share</button>
         </div>
-        <div class="menu-box" id="chat">
-            <p>Team chat</p>
-        </div>
-        <div class="menu-box" id="create">
-            <p>Create</p>
-        </div>
-    </div>
-    <div id="bottom"></div>
-    <div id="bot-box">
-        <button class="bot-btn" id="melb">Log-in</button>
-        <button class="bot-btn" id="adel">Sign up</button>
-        <button class="bot-btn" id="more">Share</button>
-    </div>
-</body>
-
+    </body>
 </html>

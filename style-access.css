@@ -53,7 +53,7 @@ html {
 #top-box {
   /* background-image: url('tennis.jpg'); */
   top: 0;
-  z-index: 1000;
+  z-index: 3000;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -61,7 +61,8 @@ html {
   margin: 0;
   color: #393939;
   min-height: 17vh;
-  overflow: hidden;
+  /* allow dropdowns to overflow the top bar so they can sit above the content */
+  overflow: visible;
   position: relative;
   background: #fffcfb;
   /* background: #2e2a2a; */
@@ -1270,6 +1271,11 @@ label {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
+.top-btn.active {
+  background-size: 200% 200%;
+  color: #fff;
+}
+
 
 .city-nav {
   display: flex;
@@ -1342,9 +1348,7 @@ label {
   left: 50%;
 }
 
-option {
-
-}
+/* empty option ruleset removed */
 
 #news-piece-id {
   color: #fff;
@@ -1352,4 +1356,67 @@ option {
   width: 100%;
   display: inline-block;
   /* position: relative; */
+}
+
+.dropdown-container {
+  position: relative;
+  width: 33%;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #000;
+  z-index: 2000;
+  border: none;
+  padding: 0;
+  margin-top: 0.5rem;
+
+  /* animation: fade + slight slide down */
+  opacity: 0;
+  transform: translateY(-8px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+}
+
+.dropdown-menu.show {
+  /* make visible and reset transform */
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.dropdown-item {
+  z-index: 2000001;
+  width: 100%;
+  font-size: 3rem;
+  font-weight: bold;
+  padding: 1rem;
+  background: #000;
+  color: #fff;
+  border: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  /* border: 0.3rem 0rem 0.3rem 0rem; */
+  border: 0.3rem;
+  border-color: #000000;
+  border-style: solid;
+}
+
+.dropdown-item:hover {
+  background: #ffffff;
+  color: #000;
+}
+
+@media (max-width: 1100px) {
+  .dropdown-item {
+    font-size: 4rem;
+    padding: 1.5rem;
+  }
 }
