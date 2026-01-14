@@ -1420,3 +1420,39 @@ label {
     padding: 1.5rem;
   }
 }
+
+#ladder-year {
+  font-size: 4rem;
+  color: #fff;
+  background-color: #000;
+  font-weight: bold;
+  border-width: 0rem;
+  
+}
+
+#ladder-year select {
+    -moz-appearance:none; /* Firefox */
+    -webkit-appearance:none; /* Safari and Chrome */
+    appearance:none;
+}
+
+.ladder-row {
+  font-size: 3rem;
+  color: #fff;
+  background-color: #000;
+  font-weight: bold;
+  border-width: 0rem;
+}
+
+.year-button {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #000000;
+  background-color: #ffffff;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 0rem 0rem;
+  cursor: pointer;
+}
