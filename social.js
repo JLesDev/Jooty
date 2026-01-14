@@ -297,6 +297,7 @@ const fixtureButton = document.querySelector('.city-nav #melb');
 const fixtureMenu = document.getElementById('fixture-menu');
 let ladderCache = {}; // cache ladder data per year for this session
 let fixtureCache = {}; // cache fixtures per year
+let roundsListenersAdded = false;
 
 
 
@@ -316,8 +317,22 @@ function closeOtherMenus(exceptButton) {
     }
     if (fixtureMenu && exceptButton !== fixtureButton) {
       fixtureMenu.classList.remove('show');
-      const ro = fixtureMenu.querySelector('.rounds-options');
-      if (ro) ro.classList.remove('show');
+      // rounds-options may have been moved to document.body to avoid clipping; handle both cases
+      let ro = fixtureMenu.querySelector('.rounds-options');
+      if (!ro) ro = document.querySelector('.rounds-options');
+      if (ro) {
+        ro.classList.remove('show');
+        // if it was moved to body, move it back into fixture controls so DOM stays tidy
+        try {
+          const controls = fixtureMenu.querySelector('.fixture-controls');
+          if (controls && ro.parentElement === document.body) {
+            controls.appendChild(ro);
+            ro.style.position = '';
+            ro.style.left = '';
+            ro.style.top = '';
+          }
+        } catch (e) {}
+      }
       fixtureButton && fixtureButton.classList.remove('active');
       if (document.activeElement === fixtureButton) fixtureButton.blur();
     }
@@ -395,18 +410,67 @@ if (fixtureButton && fixtureMenu) {
       roundsButton.tabIndex = 0;
       roundsButton.innerText = 'All Rounds';
 
+      
+
       const roundsOptions = document.createElement('div');
       roundsOptions.className = 'rounds-options';
 
+      // Position the rounds-options into document.body so it cannot be clipped by ancestor overflow
       roundsButton.addEventListener('click', (ev) => {
         ev.stopPropagation();
+        try {
+          // If not already moved to body, move it so it escapes clipping contexts
+          if (roundsOptions.parentElement !== document.body) {
+            // preserve the options element but move it to body
+            document.body.appendChild(roundsOptions);
+            roundsOptions.style.position = 'absolute';
+            roundsOptions.style.right = 'auto';
+          }
+          // compute position below the button
+          const rect = roundsButton.getBoundingClientRect();
+          // place the dropdown so its left aligns with the button's left (or keep within viewport)
+          const left = Math.max(8, rect.left + window.scrollX);
+          const top = rect.bottom + window.scrollY + 6; // small gap
+          roundsOptions.style.left = left + 'px';
+          roundsOptions.style.top = top + 'px';
+        } catch (e) {
+          // fall back to toggling in-place
+        }
         roundsOptions.classList.toggle('show');
       });
+
+      // Prevent clicks inside the options from bubbling to document and closing menus
       roundsOptions.addEventListener('click', (ev) => ev.stopPropagation());
 
       controls.appendChild(roundsButton);
       controls.appendChild(roundsOptions);
       fixtureMenu.appendChild(controls);
+
+      // reposition helper: keep the rounds dropdown aligned to the button when it's moved to body
+      const repositionRoundsOptions = () => {
+        try {
+          const ro = document.querySelector('.rounds-options');
+          const btn = document.querySelector('.rounds-button');
+          if (!ro || !btn) return;
+          if (ro.parentElement !== document.body) return;
+          if (!ro.classList.contains('show')) return;
+          const rect = btn.getBoundingClientRect();
+          // compute left so the menu stays within the viewport
+          let left = Math.max(8, rect.left + window.scrollX);
+          const roWidth = ro.offsetWidth || Math.min(200, window.innerWidth - 16);
+          const maxLeft = window.innerWidth - roWidth - 8;
+          if (left > maxLeft) left = Math.max(8, maxLeft);
+          const top = rect.bottom + window.scrollY + 6;
+          ro.style.left = left + 'px';
+          ro.style.top = top + 'px';
+        } catch (e) {}
+      };
+      if (!roundsListenersAdded) {
+        window.addEventListener('resize', repositionRoundsOptions);
+        // use capture so scrolls inside other containers also trigger reposition
+        window.addEventListener('scroll', repositionRoundsOptions, true);
+        roundsListenersAdded = true;
+      }
 
       const rows = document.createElement('div');
       rows.className = 'fixture-rows';
@@ -477,8 +541,21 @@ if (fixtureButton && fixtureMenu) {
   document.addEventListener('click', () => {
     if (fixtureMenu) {
       fixtureMenu.classList.remove('show');
-      const ro = fixtureMenu.querySelector('.rounds-options');
-      if (ro) ro.classList.remove('show');
+      // find rounds-options either nested or moved to body and hide it
+      let ro = fixtureMenu.querySelector('.rounds-options');
+      if (!ro) ro = document.querySelector('.rounds-options');
+      if (ro) {
+        ro.classList.remove('show');
+        try {
+          const controls = fixtureMenu.querySelector('.fixture-controls');
+          if (controls && ro.parentElement === document.body) {
+            controls.appendChild(ro);
+            ro.style.position = '';
+            ro.style.left = '';
+            ro.style.top = '';
+          }
+        } catch (e) {}
+      }
     }
     if (fixtureButton) fixtureButton.classList.remove('active');
     // remove overlay if present
