@@ -331,7 +331,7 @@ function closeOtherMenus(exceptButton) {
             ro.style.left = '';
             ro.style.top = '';
           }
-        } catch (e) {}
+        } catch (e) { }
       }
       fixtureButton && fixtureButton.classList.remove('active');
       if (document.activeElement === fixtureButton) fixtureButton.blur();
@@ -410,36 +410,38 @@ if (fixtureButton && fixtureMenu) {
       roundsButton.tabIndex = 0;
       roundsButton.innerText = 'All Rounds';
 
-      
+
 
       const roundsOptions = document.createElement('div');
       roundsOptions.className = 'rounds-options';
 
       // Position the rounds-options into document.body so it cannot be clipped by ancestor overflow
       roundsButton.addEventListener('click', (ev) => {
+        console.log('clicked rounds button!')
         ev.stopPropagation();
         try {
+          console.log('Inside try block')
           // If not already moved to body, move it so it escapes clipping contexts
           if (roundsOptions.parentElement !== document.body) {
+            console.log('If was true')
             // preserve the options element but move it to body
             document.body.appendChild(roundsOptions);
             roundsOptions.style.position = 'absolute';
-            roundsOptions.style.right = 'auto';
+            roundsOptions.style.left = 'auto';
           }
-          // compute position below the button
           const rect = roundsButton.getBoundingClientRect();
-          // place the dropdown so its left aligns with the button's left (or keep within viewport)
           const left = Math.max(8, rect.left + window.scrollX);
-          const top = rect.bottom + window.scrollY + 6; // small gap
+          const top = rect.bottom + window.scrollY + 6;
           roundsOptions.style.left = left + 'px';
           roundsOptions.style.top = top + 'px';
+          // roundsOptions.classList.toggle('show');
         } catch (e) {
-          // fall back to toggling in-place
+          console.log(e);
         }
         roundsOptions.classList.toggle('show');
       });
 
-      // Prevent clicks inside the options from bubbling to document and closing menus
+      // prevent clicks inside the options from bubbling to document and closing menus :D
       roundsOptions.addEventListener('click', (ev) => ev.stopPropagation());
 
       controls.appendChild(roundsButton);
@@ -463,7 +465,7 @@ if (fixtureButton && fixtureMenu) {
           const top = rect.bottom + window.scrollY + 6;
           ro.style.left = left + 'px';
           ro.style.top = top + 'px';
-        } catch (e) {}
+        } catch (e) { }
       };
       if (!roundsListenersAdded) {
         window.addEventListener('resize', repositionRoundsOptions);
@@ -477,13 +479,12 @@ if (fixtureButton && fixtureMenu) {
       rows.id = 'fixture-rows';
       fixtureMenu.appendChild(rows);
 
-      // load upcoming for current year and populate rounds
+
       const year = String(new Date().getFullYear());
       const all = await loadFixturesForYear(year, rows);
-        // build rounds list from fetched data (include round 0)
-        const rounds = Array.from(new Set(all.map(g => g.round).filter(r => r !== undefined && r !== null))).sort((a,b)=>a-b);
-        // choose default: prefer Round 0 when present, otherwise first round, otherwise 'all'
-        const defaultRound = rounds.includes(0) ? 0 : (rounds.length ? rounds[0] : 'all');
+
+      const rounds = Array.from(new Set(all.map(g => g.round).filter(r => r !== undefined && r !== null))).sort((a, b) => a - b);
+      let defaultRound = rounds.includes(0) ? 0 : (rounds.length ? rounds[0] : 'all');
       const optsFrag = document.createDocumentFragment();
       const allOpt = document.createElement('div');
       allOpt.className = 'dropdown-item round-option';
@@ -499,9 +500,10 @@ if (fixtureButton && fixtureMenu) {
         const opt = document.createElement('div');
         opt.className = 'dropdown-item round-option';
         opt.dataset.round = String(r);
-        opt.innerText = 'Round ' + r;
+        opt.innerText = 'Round ' + roundFormat(r);
         opt.addEventListener('click', () => {
-          roundsButton.innerText = 'Round ' + r;
+          console.log(r)
+          roundsButton.innerText = 'Round ' + roundFormat(r);
           roundsOptions.classList.remove('show');
           const subset = all.filter(g => String(g.round) === String(r));
           renderFixtures(subset, rows);
@@ -514,7 +516,8 @@ if (fixtureButton && fixtureMenu) {
         roundsButton.innerText = 'All Rounds';
         renderFixtures(all, rows);
       } else {
-        roundsButton.innerText = 'Round ' + defaultRound;
+        let stringRound = roundFormat(defaultRound);
+        roundsButton.innerText = 'Round ' + stringRound;
         const subset = all.filter(g => String(g.round) === String(defaultRound));
         renderFixtures(subset, rows);
       }
@@ -554,7 +557,7 @@ if (fixtureButton && fixtureMenu) {
             ro.style.left = '';
             ro.style.top = '';
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     if (fixtureButton) fixtureButton.classList.remove('active');
@@ -596,8 +599,8 @@ if (ladderButton && ladderMenu) {
       button.tabIndex = 0;
       button.innerText = String(currentYear);
 
-  const options = document.createElement('div');
-  options.className = 'year-options';
+      const options = document.createElement('div');
+      options.className = 'year-options';
 
       for (let y = currentYear; y >= 1898; y--) {
         const opt = document.createElement('div');
@@ -683,37 +686,37 @@ function renderLadder(rows, container) {
   }
   container.innerHTML = '';
   rows.forEach((r, i) => {
-     const pos = r.rank ?? (i + 1);
-     let team = r.team || r.name || (r.teamid ? 'Team ' + r.teamid : 'Unknown');
-     const wins = r.wins ?? r.w ?? '-';
-     const losses = r.losses ?? r.l ?? '-';
-     const draws = r.draws ?? r.d ?? 0;
-     const points = r.points ?? r.pts ?? '-';
-     let percent = r.percentage ?? r.percent ?? r.pct ?? '-';
+    const pos = r.rank ?? (i + 1);
+    let team = r.team || r.name || (r.teamid ? 'Team ' + r.teamid : 'Unknown');
+    const wins = r.wins ?? r.w ?? '-';
+    const losses = r.losses ?? r.l ?? '-';
+    const draws = r.draws ?? r.d ?? 0;
+    const points = r.points ?? r.pts ?? '-';
+    let percent = r.percentage ?? r.percent ?? r.pct ?? '-';
 
-     percent = percentFormat(percent);
-     team = teamFormat(team);
+    percent = percentFormat(percent);
+    team = teamFormat(team);
 
 
-     const btn = document.createElement('button');
-     btn.type = 'button';
-     btn.className = 'dropdown-item ladder-row';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'dropdown-item ladder-row';
 
-     const left = document.createElement('span');
-     left.className = 'ladder-left';
-     left.innerText = `${pos} ${team}`;
+    const left = document.createElement('span');
+    left.className = 'ladder-left';
+    left.innerText = `${pos} ${team}`;
 
-     const right = document.createElement('span');
-     right.className = 'ladder-right';
-     right.innerText = `${wins}W ${losses}L ${draws ? ' ' + draws + 'D' : ''}  Pts:${points} ${percent}`;
+    const right = document.createElement('span');
+    right.className = 'ladder-right';
+    right.innerText = `${wins}W ${losses}L ${draws ? ' ' + draws + 'D' : ''}  Pts:${points} ${percent}`;
 
-     btn.style.backgroundColor = teamColours(team);
-     left.style.color = teamTextColours(team);  
-     right.style.color = teamTextColours(team);  
+    btn.style.backgroundColor = teamColours(team);
+    left.style.color = teamTextColours(team);
+    right.style.color = teamTextColours(team);
 
-     btn.appendChild(left);
-     btn.appendChild(right);
-     container.appendChild(btn);
+    btn.appendChild(left);
+    btn.appendChild(right);
+    container.appendChild(btn);
   });
 }
 
@@ -739,22 +742,29 @@ function renderFixtures(games, container) {
     btn.type = 'button';
     btn.className = 'dropdown-item fixture-row';
 
+
     team1 = teamFormat(team1);
     team2 = teamFormat(team2);
 
-  const left = document.createElement('span');
-  left.className = 'fixture-left';
-  left.innerText = `${team1} v ${team2}`;
+    btn.style.backgroundColor = teamColours(team1);
+    
 
-  const right = document.createElement('span');
-  right.className = 'fixture-right';
-  // show date and venue on the second line
-  const venueText = g.venue ? `  •  ${g.venue}` : '';
-  right.innerText = `${dateStr}${venueText}`;
+    const left = document.createElement('span');
+    left.className = 'fixture-left';
+    left.innerText = `${team1} v ${team2}`;
+
+    const right = document.createElement('span');
+    right.className = 'fixture-right';
+    // show date and venue on the second line
+    const venueText = g.venue ? `  •  ${g.venue}` : '';
+    right.innerText = `${dateStr}${venueText}`;
 
     // btn.style.backgroundColor = teamColours("white");
-    left.style.color = teamTextColours("white");  
-    right.style.color = teamTextColours("white");  
+
+    left.style.color = teamTextColours(team1);
+    right.style.color = teamTextColours(team1);
+    // left.style.color = teamTextColours("white");
+    // right.style.color = teamTextColours("white");
 
     btn.appendChild(left);
     btn.appendChild(right);
@@ -815,153 +825,177 @@ async function loadLadderForYear(year, rowsContainer) {
   }
 }
 
+function roundFormat(round) {
+  if (round == 25) {
+    return "QF/EF"
+  }
+  else if (round == 26) {
+    return "SF"
+  }
+  else if (round == 27) {
+    return "PF"
+  }
+  else if (round == 28) {
+    return "GF"
+  }
+  else {
+    return round;
+  }
+}
+
 function teamFormat(team) {
-    if(team == "Greater Western Sydney"){
-        return "GWS"
-    }
-    else if(team == "Brisbane Lions")
-        return "Bris. Lions"
-    else if(team == "North Melbourne"){
-        return "North Melb."
-    }
-    else {
-        return team
-    }
+  if (team == "Greater Western Sydney") {
+    return "GWS"
+  }
+  else if (team == "Brisbane Lions")
+    return "Bris. Lions"
+  else if (team == "North Melbourne") {
+    return "North Melb."
+  }
+  else {
+    return team
+  }
 }
 
 function percentFormat(percent) {
-    if (typeof percent === 'number') {
-        if(percent == 0){
-            return 0 + '%';
-        }
-        return percent.toFixed(1) + '%';
+  if (typeof percent === 'number') {
+    if (percent == 0) {
+      return 0 + '%';
     }
-    return percent;
+    return percent.toFixed(1) + '%';
+  }
+  return percent;
 }
 
 function teamColours(team) {
-    if(team == "Adelaide"){
-        return '#08005bff'
-    }
-    else if(team == "Bris. Lions"){
-        return '#7b0909ff'
-    }
-    else if(team == "Carlton"){
-        return '#09004dff'
-    }
-    else if (team == "Collingwood"){
-        return '#000000ff'
-    }
-    else if (team == "Essendon"){
-        return '#000000ff'
-    }
-    else if (team == "Fitzroy"){
-        return '#a20913ff'
-    }
-    else if (team == "Fremantle"){
-        return '#341697ff'
-    }
-    else if (team == "Geelong"){
-        return '#233075ff'
-    }
-    else if (team == "Gold Coast"){
-        return '#ff93d0ff'
-    }
-    else if (team == "GWS"){
-        return '#ff8317ff'
-    }
-    else if (team == "Hawthorn"){
-        return '#4c3800ff'
-    }
-    else if (team == "Melbourne"){
-        return '#580000ff'
-    }
-    else if (team == "North Melb."){
-        return '#598dffff'
-    }
-    else if (team == "Port Adelaide"){
-        return '#1394b8ff'
-    }
-    else if (team == "Richmond"){
-        return '#ffcc00ff'
-    }
-    else if (team == "St Kilda"){
-        return '#f4f4f4ff'
-    }
-    else if (team == "Sydney"){
-        return '#ed1c24ff'
-    }
-    else if (team == "West Coast"){
-        return '#006affff'
-    }
-    else if (team == "Western Bulldogs"){
-        return '#0055aaff'
-    }
-    else {
-        return '#ffffff'
-    }
+  if (team == "Adelaide") {
+    return '#08005bff'
+  }
+  else if (team == "Bris. Lions") {
+    return '#7b0909ff'
+  }
+  else if (team == "Carlton") {
+    return '#09004dff'
+  }
+  else if (team == "Collingwood") {
+    return '#000000ff'
+  }
+  else if (team == "Essendon") {
+    return '#000000ff'
+  }
+  else if (team == "Fitzroy") {
+    return '#a20913ff'
+  }
+  else if (team == "Fremantle") {
+    return '#341697ff'
+  }
+  else if (team == "Geelong") {
+    return '#233075ff'
+  }
+  else if (team == "Gold Coast") {
+    return '#ff93d0ff'
+  }
+  else if (team == "GWS") {
+    return '#ff8317ff'
+  }
+  else if (team == "Hawthorn") {
+    return '#4c3800ff'
+  }
+  else if (team == "Melbourne") {
+    return '#580000ff'
+  }
+  else if (team == "North Melb.") {
+    return '#598dffff'
+  }
+  else if (team == "Port Adelaide") {
+    return '#1394b8ff'
+  }
+  else if (team == "Richmond") {
+    return '#ffcc00ff'
+  }
+  else if (team == "St Kilda") {
+    return '#f4f4f4ff'
+  }
+  else if (team == "Sydney") {
+    return '#ed1c24ff'
+  }
+  else if (team == "West Coast") {
+    return '#006affff'
+  }
+  else if (team == "Western Bulldogs") {
+    return '#0055aaff'
+  }
+  else if (team == "University") {
+    return '#ffffffff'
+  }
+  else {
+    return '#ffffff'
+  }
 }
 
 
 function teamTextColours(team) {
-    if(team == "Adelaide"){
-        return '#ffc219ff'
-    }
-    else if(team == "Bris. Lions"){
-        return '#f6ff50ff'
-    }
-    else if(team == "Carlton"){
-        return '#ffffffff'
-    }
-    else if (team == "Collingwood"){
-        return '#ffffffff'
-    }
-    else if (team == "Essendon"){
-        return '#ff0000ff'
-    }
-    else if (team == "Fitzroy"){
-        return '#f1ee2aff'
-    }
-    else if (team == "Fremantle"){
-        return '#ffffffff'
-    }
-    else if (team == "Geelong"){
-        return '#ffffffff'
-    }
-    else if (team == "Gold Coast"){
-        return '#000000ff'
-    }
-    else if (team == "GWS"){
-        return '#ffffffff'
-    }
-    else if (team == "Hawthorn"){
-        return '#ffcc00ff'
-    }
-    else if (team == "Melbourne"){
-        return '#ffffffff'
-    }
-    else if (team == "North Melb."){
-        return '#ffffffff'
-    }
-    else if (team == "Port Adelaide"){
-        return '#ffffffff'
-    }
-    else if (team == "Richmond"){
-        return '#000000ff'
-    }
-    else if (team == "St Kilda"){
-        return '#ff0000ff'
-    }
-    else if (team == "Sydney"){
-        return '#ffffffff'
-    }
-    else if (team == "West Coast"){
-        return '#ffee00ff'
-    }
-    else if (team == "Western Bulldogs"){
-        return '#ffffffff'
-    }
-    else {
-        return '#ffffff'
-    }
+  if (team == "Adelaide") {
+    return '#ffc219ff'
+  }
+  else if (team == "Bris. Lions") {
+    return '#f6ff50ff'
+  }
+  else if (team == "Carlton") {
+    return '#ffffffff'
+  }
+  else if (team == "Collingwood") {
+    return '#ffffffff'
+  }
+  else if (team == "Essendon") {
+    return '#ff0000ff'
+  }
+  else if (team == "Fitzroy") {
+    return '#f1ee2aff'
+  }
+  else if (team == "Fremantle") {
+    return '#ffffffff'
+  }
+  else if (team == "Geelong") {
+    return '#ffffffff'
+  }
+  else if (team == "Gold Coast") {
+    return '#000000ff'
+  }
+  else if (team == "GWS") {
+    return '#ffffffff'
+  }
+  else if (team == "Hawthorn") {
+    return '#ffcc00ff'
+  }
+  else if (team == "Melbourne") {
+    return '#ffffffff'
+  }
+  else if (team == "North Melb.") {
+    return '#ffffffff'
+  }
+  else if (team == "Port Adelaide") {
+    return '#ffffffff'
+  }
+  else if (team == "Richmond") {
+    return '#000000ff'
+  }
+  else if (team == "St Kilda") {
+    return '#ff0000ff'
+  }
+  else if (team == "Sydney") {
+    return '#ffffffff'
+  }
+  else if (team == "West Coast") {
+    return '#ffee00ff'
+  }
+  else if (team == "Western Bulldogs") {
+    return '#ffffffff'
+  }
+  else if (team == "University") {
+    return '#233075ff'
+  }
+  else {
+    return '#ffffff'
+  }
 }

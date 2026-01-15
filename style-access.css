@@ -638,14 +638,12 @@ radial-gradient(circle at 70% 80%, rgba(219, 219, 219, 0.781), transparent 40%);
   border-color: #555 transparent transparent transparent;
 }
 
-/* Toggle this class when clicking on the popup container (hide and show the popup) */
 .popup .show {
   visibility: visible;
   -webkit-animation: fadeIn 1s;
   animation: fadeIn 1s
 }
 
-/* Add animation (fade in the popup) */
 @-webkit-keyframes fadeIn {
   from {
     opacity: 0;
@@ -1158,71 +1156,6 @@ label {
   font-size: 2rem;
 }
 
-/* .top-btn {
-  font-size: 4rem;
-  font-weight: bold;
-  width: 33%;
-  height: auto;
-  background: transparent;
-  border: none;
-  padding: 0rem;
-  color: var(--fg-color);
-}
-
-.top-btn:hover,
-.top-btn:focus {
-  background: rgba(221, 220, 220, 0.788);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(197, 197, 197, 0.788);
-}*/
-/* 
-.top-btn:active {
-  transform: scale(0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-} 
-
-.top-btn {
-  font-size: 4rem;
-  font-weight: bold;
-  width: 33%;
-  height: auto;
-  background: linear-gradient(
-      135deg,       
-      black 0%,
-      black 0%,  
-      transparent 0%
-    ) no-repeat;
-  background-size: 0% 100%; 
-  background-position: top right;
-  border: none;
-  padding: 0rem;
-  color: var(--fg-color);
-  transition: background-size 0.1s ease;
-}
-
-.top-btn:hover,
-.top-btn:focus {
-  background-size: 100% 100%; 
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(197, 197, 197, 0.788);
-}
- */
-
-/* .top-btn {
-  position: relative;
-  font-size: 4rem;
-  font-weight: bold;
-  width: 33%;
-  height: auto;
-  border: none;
-  padding: 0rem;
-  color: var(--fg-color);
-  overflow: hidden; 
-  background: transparent;
-  z-index: 0;
-  transition: transform 0.1s, box-shadow 0.1s;
-} */
-
 .bot-btn {
   position: relative;
   font-size: 4rem;
@@ -1393,7 +1326,6 @@ label {
 }
 
 .dropdown-menu.show {
-  /* make visible and reset transform */
   opacity: 1;
   transform: translateY(0);
   visibility: visible;
@@ -1419,6 +1351,14 @@ label {
   flex: 1 1 auto;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* backdrop-filter: blur(7.9px);
+  -webkit-backdrop-filter: blur(7.9px); */
+  /* background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(7.9px);
+  -webkit-backdrop-filter: blur(7.9px);
+  border: 1px solid rgba(255, 255, 255, 0.3); */
 }
 
 #fixture-menu {
@@ -1435,25 +1375,24 @@ label {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Uniform fixture row sizing and layout */
 .fixture-row {
   display: flex;
-  flex-direction: column; /* stack teams on top, info below */
+  flex-direction: column; 
   justify-content: center;
   gap: 0.25rem;
   padding: 0.6rem 0.9rem;
   box-sizing: border-box;
-  height: auto; /* allow natural height for text wrapping */
-  min-height: 10rem; /* reasonable two-line minimum */
-  overflow: hidden;
-  font-size: 1.6rem; /* moderate size so text isn't cut off */
+  height: auto;
+  min-height: 10rem;
+  overflow: visible;
+  font-size: 1.6rem; 
   line-height: auto;
   position: relative;
 }
 
 .fixture-row .ladder-left,
 .fixture-row .ladder-right {
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
   width: 100%;
 }
@@ -1465,30 +1404,16 @@ label {
 }
 
 .fixture-row .ladder-right {
-  text-align: left; /* info left-aligned on second line */
+  text-align: left; 
   font-weight: 500;
   font-size: 1.4rem;
   color: rgba(255,255,255,0.9);
-  white-space: normal; /* allow wrapping for venue/date info */
-}
-
-/* Background venue image (grayscale) using CSS variable set inline per row */
-.fixture-row::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: var(--venue-img, none);
-  background-size: cover;
-  background-position: center;
-  filter: grayscale(100%) brightness(0.35) contrast(0.9);
-  opacity: 1;
-  z-index: 0;
-  border-radius: 0.25rem;
+  white-space: normal; 
 }
 
 .fixture-row > * {
   position: relative;
-  z-index: 1; /* ensure text sits above background image */
+  z-index: 2; 
 }
 
 body.overlay-open::after {
@@ -1612,9 +1537,8 @@ body.overlay-open::after {
   cursor: pointer;
 }
 
-/* Make the year options visually match other dropdown items and scrollable */
 .ladder-controls {
-  position: relative; /* so .year-options can position absolute within */
+  position: relative; 
 }
 
 .year-options {
@@ -1665,12 +1589,10 @@ body.overlay-open::after {
   background: rgba(255,255,255,0.04);
 }
 
-/* rounds dropdown mirrors year options */
  .fixture-controls {
   position: relative;
 }
 
-/* Ensure controls can show dropdowns outside their own box and sit above rows */
 .fixture-controls {
   overflow: visible;
   z-index: 2300;
@@ -1701,14 +1623,14 @@ body.overlay-open::after {
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  z-index: 2400; /* sit above other menu content */
+  z-index: 24000;
 }
 
 .rounds-options .round-option {
-  font-size: 1.6rem;
+  font-size: 3rem;
   padding: 0.6rem 1rem;
   text-align: center;
-  background: transparent;
+  background: #000;
   color: #fff;
   white-space: nowrap;
 }
@@ -1731,4 +1653,52 @@ body.overlay-open::after {
   visibility: visible;
   pointer-events: auto;
   transition-delay: 0s;
+}
+
+.ladder-row::after,
+.fixture-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='3.5' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+  background-size: 250px 250px;
+}
+
+.ladder-row::before,
+.fixture-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.01;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fixture-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='3.5' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+  background-size: 250px 250px;
+}
+
+.fixture-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.01;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 1;
 }
