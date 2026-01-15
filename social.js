@@ -405,12 +405,98 @@ if (fixtureButton && fixtureMenu) {
       const controls = document.createElement('div');
       controls.className = 'fixture-controls dropdown-item';
 
+      const currentYear = new Date().getFullYear();
+      // year selector (compact)
+      const yearButton = document.createElement('div');
+      yearButton.className = 'dropdown-item year-button compact-select';
+      yearButton.tabIndex = 0;
+      yearButton.textContent = String(currentYear);
+      const ycaret = document.createElement('span');
+      ycaret.className = 'caret';
+      yearButton.appendChild(ycaret);
+
+      const yearOptions = document.createElement('div');
+      yearOptions.className = 'year-options';
+      for (let y = currentYear; y >= 1898; y--) {
+        const opt = document.createElement('div');
+        opt.className = 'dropdown-item year-option';
+        opt.dataset.year = String(y);
+        opt.innerText = String(y);
+        opt.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const selectedYear = ev.currentTarget.dataset.year;
+          yearButton.innerText = selectedYear;
+          yearOptions.classList.remove('show');
+          yearButton.classList.remove('active');
+          // reload fixtures for the selected year and rebuild rounds
+          (async () => {
+            try {
+              const rows = fixtureMenu.querySelector('#fixture-rows');
+              const all = await loadFixturesForYear(selectedYear, rows);
+              // rebuild roundsOptions
+              roundsOptions.innerHTML = '';
+              const optsFrag2 = document.createDocumentFragment();
+              const allOpt2 = document.createElement('div');
+              allOpt2.className = 'dropdown-item round-option';
+              allOpt2.dataset.round = 'all';
+              allOpt2.innerText = 'All Rounds';
+              allOpt2.addEventListener('click', () => {
+                roundsButton.innerText = 'All Rounds';
+                roundsOptions.classList.remove('show');
+                renderFixtures(all, rows);
+              });
+              optsFrag2.appendChild(allOpt2);
+              const roundsList = Array.from(new Set(all.map(g => g.round).filter(r => r !== undefined && r !== null))).sort((a,b)=>a-b);
+              roundsList.forEach(rr => {
+                const opt2 = document.createElement('div');
+                opt2.className = 'dropdown-item round-option';
+                opt2.dataset.round = String(rr);
+                opt2.innerText = 'Round ' + roundFormat(rr);
+                opt2.addEventListener('click', () => {
+                  roundsButton.innerText = 'Round ' + roundFormat(rr);
+                  roundsOptions.classList.remove('show');
+                  const subset = all.filter(g => String(g.round) === String(rr));
+                  renderFixtures(subset, rows);
+                });
+                optsFrag2.appendChild(opt2);
+              });
+              roundsOptions.appendChild(optsFrag2);
+              // auto-select default round
+              const defaultRound2 = roundsList.includes(0) ? 0 : (roundsList.length ? roundsList[0] : 'all');
+              if (defaultRound2 === 'all') {
+                roundsButton.innerText = 'All Rounds';
+                renderFixtures(all, rows);
+              } else {
+                roundsButton.innerText = 'Round ' + roundFormat(defaultRound2);
+                const subset = all.filter(g => String(g.round) === String(defaultRound2));
+                renderFixtures(subset, rows);
+              }
+            } catch (e) { }
+          })();
+        });
+        yearOptions.appendChild(opt);
+      }
+
+      yearButton.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const showing = yearOptions.classList.toggle('show');
+        yearButton.classList.toggle('active', showing);
+      });
+      yearButton.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault(); ev.stopPropagation();
+          const showing = yearOptions.classList.toggle('show');
+          yearButton.classList.toggle('active', showing);
+        }
+      });
+
       const roundsButton = document.createElement('div');
-      roundsButton.className = 'dropdown-item rounds-button';
+      roundsButton.className = 'dropdown-item rounds-button compact-select';
       roundsButton.tabIndex = 0;
-      roundsButton.innerText = 'All Rounds';
-
-
+      roundsButton.textContent = 'All Rounds';
+      const rcaret = document.createElement('span');
+      rcaret.className = 'caret';
+      roundsButton.appendChild(rcaret);
 
       const roundsOptions = document.createElement('div');
       roundsOptions.className = 'rounds-options';
@@ -438,14 +524,17 @@ if (fixtureButton && fixtureMenu) {
         } catch (e) {
           console.log(e);
         }
-        roundsOptions.classList.toggle('show');
+        const showing = roundsOptions.classList.toggle('show');
+        roundsButton.classList.toggle('active', showing);
       });
 
       // prevent clicks inside the options from bubbling to document and closing menus :D
       roundsOptions.addEventListener('click', (ev) => ev.stopPropagation());
 
-      controls.appendChild(roundsButton);
-      controls.appendChild(roundsOptions);
+  controls.appendChild(yearButton);
+  controls.appendChild(yearOptions);
+  controls.appendChild(roundsButton);
+  controls.appendChild(roundsOptions);
       fixtureMenu.appendChild(controls);
 
       // reposition helper: keep the rounds dropdown aligned to the button when it's moved to body
@@ -561,6 +650,24 @@ if (fixtureButton && fixtureMenu) {
       }
     }
     if (fixtureButton) fixtureButton.classList.remove('active');
+    // also clear active state on year/round compact selects
+    if (fixtureMenu) {
+      const ybtn = fixtureMenu.querySelector('.year-button');
+      const rbtn = fixtureMenu.querySelector('.rounds-button');
+      if (ybtn) ybtn.classList.remove('active');
+      if (rbtn) rbtn.classList.remove('active');
+      // if rounds-options is still in body, attempt to move back
+      let ro2 = document.querySelector('.rounds-options');
+      try {
+        const controls = fixtureMenu.querySelector('.fixture-controls');
+        if (controls && ro2 && ro2.parentElement === document.body) {
+          controls.appendChild(ro2);
+          ro2.style.position = '';
+          ro2.style.left = '';
+          ro2.style.top = '';
+        }
+      } catch (e) {}
+    }
     // remove overlay if present
     document.body.classList.remove('overlay-open');
     if (document.activeElement === fixtureButton) fixtureButton.blur();
@@ -594,10 +701,14 @@ if (ladderButton && ladderMenu) {
       controls.className = 'ladder-controls dropdown-item';
       // create a stylable year dropdown (div-based) so it matches other dropdowns
       const currentYear = new Date().getFullYear();
-      const button = document.createElement('div');
-      button.className = 'dropdown-item year-button';
-      button.tabIndex = 0;
-      button.innerText = String(currentYear);
+  const button = document.createElement('div');
+  button.className = 'dropdown-item year-button compact-select';
+  button.tabIndex = 0;
+  // keep the year as text node and append a caret for a compact look
+  button.textContent = String(currentYear);
+  const caret = document.createElement('span');
+  caret.className = 'caret';
+  button.appendChild(caret);
 
       const options = document.createElement('div');
       options.className = 'year-options';
@@ -609,29 +720,92 @@ if (ladderButton && ladderMenu) {
         opt.innerText = String(y);
         opt.addEventListener('click', (ev) => {
           ev.stopPropagation();
-          button.innerText = ev.currentTarget.dataset.year;
+          const selectedYear = ev.currentTarget.dataset.year;
+          button.innerText = selectedYear;
           options.classList.remove('show');
-          loadLadderForYear(ev.currentTarget.dataset.year, rows);
+          button.classList.remove('active');
+          // reload ladder for selected year (no specific round)
+          loadLadderForYear(selectedYear, rows);
+          // also refresh rounds for this year
+          (async () => {
+            try {
+              const url = 'https://api.squiggle.com.au/?q=games;format=json;year=' + encodeURIComponent(selectedYear) + ';';
+              const res = await fetch(url);
+              if (!res.ok) return;
+              const data = await res.json();
+              const arr = normalizeLadderData(data);
+              const rounds = Array.from(new Set(arr.map(g => g.round).filter(r => r !== undefined && r !== null))).sort((a,b)=>a-b);
+              // rebuild roundsOptions
+              roundsOptions.innerHTML = '';
+              const frag2 = document.createDocumentFragment();
+              const allOpt2 = document.createElement('div');
+              allOpt2.className = 'dropdown-item round-option';
+              allOpt2.dataset.round = 'all';
+              allOpt2.innerText = 'All Rounds';
+              allOpt2.addEventListener('click', () => {
+                roundsButton.innerText = 'All Rounds';
+                roundsOptions.classList.remove('show');
+                loadLadderForYear(selectedYear, rows);
+              });
+              frag2.appendChild(allOpt2);
+              rounds.forEach(r => {
+                const opt2 = document.createElement('div');
+                opt2.className = 'dropdown-item round-option';
+                opt2.dataset.round = String(r);
+                opt2.innerText = 'Round ' + roundFormat(r);
+                opt2.addEventListener('click', () => {
+                  roundsButton.innerText = 'Round ' + roundFormat(r);
+                  roundsOptions.classList.remove('show');
+                  roundsButton.classList.remove('active');
+                  loadLadderForYear(selectedYear, rows, r);
+                });
+                frag2.appendChild(opt2);
+              });
+              roundsOptions.appendChild(frag2);
+            } catch (e) { }
+          })();
         });
         options.appendChild(opt);
       }
 
       button.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        options.classList.toggle('show');
+        const showing = options.classList.toggle('show');
+        button.classList.toggle('active', showing);
       });
       // keyboard support (Enter / Space)
       button.addEventListener('keydown', (ev) => {
         if (ev.key === 'Enter' || ev.key === ' ') {
           ev.preventDefault();
           ev.stopPropagation();
-          options.classList.toggle('show');
+          const showing = options.classList.toggle('show');
+          button.classList.toggle('active', showing);
         }
       });
       options.addEventListener('click', (ev) => ev.stopPropagation());
 
+      // create rounds selector for ladder: we'll fetch games for the year to enumerate rounds
+  const roundsButton = document.createElement('div');
+  roundsButton.className = 'dropdown-item rounds-button compact-select';
+  roundsButton.tabIndex = 0;
+  roundsButton.textContent = 'All Rounds';
+  const rcaret = document.createElement('span');
+  rcaret.className = 'caret';
+  roundsButton.appendChild(rcaret);
+
+      const roundsOptions = document.createElement('div');
+      roundsOptions.className = 'rounds-options';
+      roundsButton.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const showing = roundsOptions.classList.toggle('show');
+        roundsButton.classList.toggle('active', showing);
+      });
+      roundsOptions.addEventListener('click', ev => ev.stopPropagation());
+
       controls.appendChild(button);
+      controls.appendChild(roundsButton);
       controls.appendChild(options);
+      controls.appendChild(roundsOptions);
       ladderMenu.appendChild(controls);
 
       const rows = document.createElement('div');
@@ -640,6 +814,51 @@ if (ladderButton && ladderMenu) {
 
       // load default year (current)
       loadLadderForYear(button.innerText, rows);
+
+      // populate rounds by fetching games for the year (we won't filter upcoming here)
+      (async () => {
+        try {
+          const url = 'https://api.squiggle.com.au/?q=games;format=json;year=' + encodeURIComponent(button.innerText) + ';';
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Network');
+          const data = await res.json();
+          const arr = normalizeLadderData(data);
+          const rounds = Array.from(new Set(arr.map(g => g.round).filter(r => r !== undefined && r !== null))).sort((a,b)=>a-b);
+          const frag = document.createDocumentFragment();
+          const allOpt = document.createElement('div');
+          allOpt.className = 'dropdown-item round-option';
+          allOpt.dataset.round = 'all';
+          allOpt.innerText = 'All Rounds';
+          allOpt.addEventListener('click', () => {
+            roundsButton.innerText = 'All Rounds';
+            roundsOptions.classList.remove('show');
+            loadLadderForYear(button.innerText, rows);
+          });
+          frag.appendChild(allOpt);
+          rounds.forEach(r => {
+            const opt = document.createElement('div');
+            opt.className = 'dropdown-item round-option';
+            opt.dataset.round = String(r);
+            opt.innerText = 'Round ' + roundFormat(r);
+            opt.addEventListener('click', () => {
+              roundsButton.innerText = 'Round ' + roundFormat(r);
+              roundsOptions.classList.remove('show');
+              roundsButton.classList.remove('active');
+              loadLadderForYear(button.innerText, rows, r);
+            });
+            frag.appendChild(opt);
+          });
+          roundsOptions.appendChild(frag);
+          // default to Round 0 if present
+          const defaultRound = rounds.includes(0) ? 0 : (rounds.length ? rounds[0] : 'all');
+          if (defaultRound !== 'all') {
+            roundsButton.innerText = 'Round ' + roundFormat(defaultRound);
+            loadLadderForYear(button.innerText, rows, defaultRound);
+          }
+        } catch (e) {
+          // ignore rounds population errors
+        }
+      })();
     } else {
       // if controls exist, read the year from the stylable year button and refresh
       const button = ladderMenu.querySelector('.year-button');
@@ -656,8 +875,14 @@ if (ladderButton && ladderMenu) {
       // also close any open year-options inside
       const yo = ladderMenu.querySelector('.year-options');
       if (yo) yo.classList.remove('show');
+      const ro = ladderMenu.querySelector('.rounds-options');
+      if (ro) ro.classList.remove('show');
     }
     if (ladderButton) ladderButton.classList.remove('active');
+    const ybtn = ladderMenu ? ladderMenu.querySelector('.year-button') : null;
+    const rbtn = ladderMenu ? ladderMenu.querySelector('.rounds-button') : null;
+    if (ybtn) ybtn.classList.remove('active');
+    if (rbtn) rbtn.classList.remove('active');
     // remove page overlay if present
     document.body.classList.remove('overlay-open');
     if (document.activeElement === ladderButton) ladderButton.blur();
@@ -720,6 +945,19 @@ function renderLadder(rows, container) {
   });
 }
 
+// small helper to format a score from various Squiggle game shapes
+function formatScoreFromGame(g) {
+  if (!g) return null;
+  const s1 = (g.score1 ?? g.home_score ?? g.hscore ?? g.h_goals ?? g.h_points ?? g.h) ?? null;
+  const s2 = (g.score2 ?? g.away_score ?? g.ascore ?? g.a_goals ?? g.a_points ?? g.a) ?? null;
+  if (s1 != null && s2 != null) return `${s1}–${s2}`;
+  // sometimes scores are in text fields like hscore_text/ascore_text
+  if ((g.hscore_text || g.ascore_text) && (g.hteam || g.home)) {
+    return `${g.hscore_text || ''}–${g.ascore_text || ''}`.trim();
+  }
+  return null;
+}
+
 function renderFixtures(games, container) {
   if (!Array.isArray(games) || games.length === 0) {
     container.innerHTML = '<div class="dropdown-item">No upcoming games</div>';
@@ -768,8 +1006,65 @@ function renderFixtures(games, container) {
 
     btn.appendChild(left);
     btn.appendChild(right);
+
+    // score badge for past/completed games (populate async if needed)
+    const scoreEl = document.createElement('span');
+    scoreEl.className = 'fixture-score';
+    scoreEl.style.display = 'none';
+    btn.appendChild(scoreEl);
+
     // no venue images: simple text-only rows (venue may appear in the right column)
     container.appendChild(btn);
+
+    // Populate score: only for past games (date < now) and only if complete !== 0
+    (async () => {
+      try {
+        const gameTime = g.date ? new Date(g.date).getTime() : null;
+        const isPast = gameTime ? (gameTime < now) : false;
+        const completeFlag = (g.complete !== undefined && g.complete !== null) ? Number(g.complete) : null;
+        if (!isPast) return; // only show scores for past games
+        if (completeFlag === 0) return; // do not show score when API marks complete=0 (not started)
+
+        // try to format from existing fields first
+        const s = formatScoreFromGame(g);
+        if (s) {
+          scoreEl.innerText = s;
+          scoreEl.style.display = '';
+          return;
+        }
+
+        // fallback: fetch games for the game's year and round (Squiggle sometimes has missing scores)
+        const year = g.date ? new Date(g.date).getFullYear() : (g.year || new Date().getFullYear());
+        const round = g.round ?? g.round_number ?? g.rnd ?? null;
+        if (!round) return;
+        try {
+          const url = 'https://api.squiggle.com.au/?q=games;format=json;year=' + encodeURIComponent(year) + ';round=' + encodeURIComponent(round) + ';';
+          const res = await fetch(url);
+          if (!res.ok) return;
+          const data = await res.json();
+          const arr = normalizeLadderData(data);
+          // find matching game by id or by team names and date
+          const t1 = teamFormat(g.hteam || g.home || g.team1id || g.teamA || '');
+          const t2 = teamFormat(g.ateam || g.away || g.team2id || g.teamB || '');
+          let match = null;
+          if (g.id) match = arr.find(x => String(x.id) === String(g.id) || String(x.gameid) === String(g.id));
+          if (!match) {
+            match = arr.find(x => {
+              const a = teamFormat(x.hteam || x.home || x.team1id || x.teamA || '');
+              const b = teamFormat(x.ateam || x.away || x.team2id || x.teamB || '');
+              return (a === t1 && b === t2) || (a === t2 && b === t1);
+            });
+          }
+          if (match) {
+            const s2 = formatScoreFromGame(match);
+            if (s2) {
+              scoreEl.innerText = s2;
+              scoreEl.style.display = '';
+            }
+          }
+        } catch (e) { /* ignore */ }
+      } catch (e) { /* ignore */ }
+    })();
   });
 }
 
@@ -792,6 +1087,8 @@ async function loadFixturesForYear(year, rowsContainer) {
       try {
         if (g.date) return new Date(g.date).getTime() > now;
         // fallback: treat games without score fields as upcoming
+        // but respect explicit complete flag: if complete === 0 (not started) treat as upcoming
+        if (g.complete !== undefined && Number(g.complete) === 0) return true;
         return !(g.score1 || g.score2 || g.home_score || g.away_score);
       } catch (e) { return false; }
     });
@@ -805,23 +1102,27 @@ async function loadFixturesForYear(year, rowsContainer) {
   }
 }
 
-async function loadLadderForYear(year, rowsContainer) {
-  if (ladderCache[year]) {
-    renderLadder(ladderCache[year], rowsContainer);
+async function loadLadderForYear(year, rowsContainer, round) {
+  const key = (round !== undefined && round !== null && String(round) !== 'all') ? `${year}_${round}` : String(year);
+  if (ladderCache[key]) {
+    renderLadder(ladderCache[key], rowsContainer);
     return;
   }
   rowsContainer.innerHTML = '<div class="dropdown-item">Loading ladder...</div>';
   try {
-    const url = 'https://api.squiggle.com.au/?q=standings;format=json;year=' + encodeURIComponent(year) + ';';
+    let url = 'https://api.squiggle.com.au/?q=standings;format=json;year=' + encodeURIComponent(year) + ';';
+    if (round !== undefined && round !== null && String(round) !== 'all') {
+      url += 'round=' + encodeURIComponent(round) + ';';
+    }
     const res = await fetch(url);
     if (!res.ok) throw new Error('Network response was not ok');
     const data = await res.json();
     const normalized = normalizeLadderData(data);
-    ladderCache[year] = normalized;
+    ladderCache[key] = normalized;
     renderLadder(normalized, rowsContainer);
   } catch (err) {
     rowsContainer.innerHTML = '<div class="dropdown-item">Failed to load ladder</div>';
-    console.error('Failed to fetch ladder for year', year, err);
+    console.error('Failed to fetch ladder for year', year, 'round', round, err);
   }
 }
 
@@ -837,6 +1138,12 @@ function roundFormat(round) {
   }
   else if (round == 28) {
     return "GF"
+  }
+  else if (round == 0) {
+    return "0*"
+  }
+  else if (round == 5) {
+    return "5*"
   }
   else {
     return round;
